@@ -17,7 +17,7 @@ static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long
 	int size = graph_size(g);
 
 	if (verbose)
-		path_print(current, "analysing");
+		path_print(current, (char*)"analysing");
 
 	if (path_size(current) < size) {
 		// not yet a leaf
@@ -25,7 +25,7 @@ static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long
 			// current already >= shortest known so far, bound
 			counters[path_size(current)] ++;
 			if (verbose)
-				path_print(current, "bound");
+				path_print(current, (char*)"bound");
 		} else {
 			// continue branching
 			for (i=1; i<size; i++) {
@@ -41,7 +41,7 @@ static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long
 		counters[path_size(current)] ++;
 		if (path_len(current) < path_len(shortest)) {
 			if (verbose)
-				path_print(current, "shorter");
+				path_print(current, (char*)"shorter");
 			path_copy(shortest, current);
 		}
 		path_drop_tail(current, g);
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	path_add_node(&current, 0, &graph, 0);
 
 	branch_and_bound(&graph, &current, &shortest, counters, verbose);
-	path_print(&shortest, "shortest");
+	path_print(&shortest, (char*)"shortest");
 
 	times(&tb);
 	printf("elapsed time: %lds\n", time(0) - start);

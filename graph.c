@@ -74,7 +74,10 @@ void graph_read_tsplib(graph_t *g, char *name)
 		exit(1);
 	}
 	while (1) {
-		fgets(line, MAX_CHARS_LINE-1, f);
+		if (fgets(line, MAX_CHARS_LINE-1, f) == NULL) {
+			perror("Error reading line");
+			exit(1);
+		}
 		if (!strncmp("DIMENSION", line, 10)) {
 			sscanf(line+11, "%d", &size);
 			if (size > MAX_NODES) {

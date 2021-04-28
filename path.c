@@ -79,7 +79,7 @@ int path_add_node(path_t *p, int node, graph_t *g, int check)
 		p->size ++;
 		return 1;
 	}
-	path_print(p, "error");
+	path_print(p, (char*)"error");
 	perror("path too small");
 	exit(1);
 }

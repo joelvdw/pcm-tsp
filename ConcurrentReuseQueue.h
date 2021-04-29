@@ -8,28 +8,13 @@
 
 #include <cstddef>
 #include "AtomicStampedReference.h"
-
-template <class T>
-class Node {
-public:
-   T value;
-  AtomicStampedReference<Node<T>> nextref;
-
-  Node(T v) {
-      this.value = v;
-      this.nextref = new AtomicStampedReference<Node<T>>(NULL, 0);
-  }
-
-  void free() {
-    delete nextref;
-  }
-};
+#include "Node.h"
 
 template <class T>
 class ConcurrentReuseQueue {
 private:
-	AtomicStampedReference<Node<T>> headref;
-	AtomicStampedReference<Node<T>> tailref;
+	AtomicStampedReference<Node<T>>* headref;
+	AtomicStampedReference<Node<T>>* tailref;
 	// thread_local Node<T> freelist = NULL;
 
 	// Node<T> allocate(T value);
@@ -38,8 +23,8 @@ private:
 public:
 	ConcurrentReuseQueue();
 
-  void enqueue(T value);
-	T dequeue();
+  void enqueue(T* value);
+	T* dequeue();
   void close();
 };
 

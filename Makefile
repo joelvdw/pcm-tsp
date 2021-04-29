@@ -1,9 +1,12 @@
 CFLAGS=-O3 -Wall -Werror -Wextra
-LDFLAGS=-O3 -lm
-GPP=g++ -std=c++11 $(CFLAGS) -fgnu-tm
-LD=g++ -std=c++11 $(LDFLAGS) -fgnu-tm
+LDFLAGS=-O3 -lm -mcx16 -latomic -lpthread
+GPP=g++ -std=c++11 $(CFLAGS)
+LD=g++ -std=c++11
 
-tsp: tsp.o path.o graph.o AtomicStampedReference.o ConcurrentReuseQueue.o
+tsp: tsp.o path.o graph.o AtomicStampedReference.o Node.o ConcurrentReuseQueue.o
+	$(LD) -o $@ $^ $(LDFLAGS)
+
+test: test.cpp ConcurrentReuseQueue.o
 	$(LD) -o $@ $^ $(LDFLAGS)
 
 omp:
@@ -15,7 +18,10 @@ clean:
 AtomicStampedReference.o: AtomicStampedReference.cpp AtomicStampedReference.h
 	$(GPP) -c $<
 
-ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h AtomicStampedReference.h
+Node.o: Node.cpp Node.h
+	$(GPP) -c $<
+
+ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h Node.h AtomicStampedReference.h
 	$(GPP) -c $<
 
 graph.o: graph.cpp graph.h

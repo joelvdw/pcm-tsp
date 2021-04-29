@@ -7,11 +7,13 @@
 #define _CRQ_CPP_
 
 #include <cstddef>
+#include "AtomicStampedReference.h"
+#include "Node.h"
 #include "ConcurrentReuseQueue.h"
 
 template <class T>
 ConcurrentReuseQueue<T>::ConcurrentReuseQueue() {
-  Node<T> node = new Node<T>(NULL);
+  Node<T>* node = new Node<T>(NULL);
   headref = new AtomicStampedReference<Node<T>>(node, 0);
   tailref = new AtomicStampedReference<Node<T>>(node, 0);
 }
@@ -37,50 +39,50 @@ ConcurrentReuseQueue<T>::ConcurrentReuseQueue() {
 // }
 
 template <class T>
-void ConcurrentReuseQueue<T>::enqueue(T value) {
-  Node<T> node = new Node<T>(value); // allocate(value);
+void ConcurrentReuseQueue<T>::enqueue(T* value) {
+  Node<T>* node = new Node<T>(value); // allocate(value);
   long tailStamp[1];
   long nextStamp[1];
   long stamp[1];
 
   while (true) {
-    Node<T> tail = tailref.get(tailStamp);
-    Node<T> next = tail.nextref.get(nextStamp);
-    if (tail == tailref.get(stamp) && stamp[0] == tailStamp[0]) {
+    Node<T>* tail = tailref->get(tailStamp);
+    Node<T>* next = tail->nextref->get(nextStamp);
+    if (tail == tailref->get(stamp) && stamp[0] == tailStamp[0]) {
       if (next == NULL) {
-        if (tail.nextref.compareAndSet(next, node, nextStamp[0], nextStamp[0]+1)) {
-          tailref.compareAndSet(tail, node, tailStamp[0], tailStamp[0]+1);
+        if (tail->nextref->compareAndSet(next, node, nextStamp[0], nextStamp[0]+1)) {
+          tailref->compareAndSet(tail, node, tailStamp[0], tailStamp[0]+1);
           return;
         }
       } else {
-        tailref.compareAndSet(tail, next, tailStamp[0], tailStamp[0]+1);
+        tailref->compareAndSet(tail, next, tailStamp[0], tailStamp[0]+1);
       }
     }
   }
 }
 
 template <class T>
-T ConcurrentReuseQueue<T>::dequeue() {
+T* ConcurrentReuseQueue<T>::dequeue() {
   long tailStamp[1];
   long headStamp[1];
   long nextStamp[1];
   long stamp[1];
 
   while (true) {
-    Node<T> head = headref.get(headStamp);
-    Node<T> tail = tailref.get(tailStamp);
-    Node<T> next = head.nextref.get(nextStamp);
-    if (head == headref.get(stamp) && stamp[0] == headStamp[0]) {
+    Node<T>* head = headref->get(headStamp);
+    Node<T>* tail = tailref->get(tailStamp);
+    Node<T>* next = head->nextref->get(nextStamp);
+    if (head == headref->get(stamp) && stamp[0] == headStamp[0]) {
       if (head == tail) {
         if (next == NULL)
           return NULL;
 
-        tailref.compareAndSet(tail, next, tailStamp[0], tailStamp[0]+1);
+        tailref->compareAndSet(tail, next, tailStamp[0], tailStamp[0]+1);
       } else {
-        T value = next.value;
-        if (headref.compareAndSet(head, next, headStamp[0], headStamp[0]+1)) {
-          head.free();
-          delete head; // free(head)
+        T* value = next->value;
+        if (headref->compareAndSet(head, next, headStamp[0], headStamp[0]+1)) {
+          head->free();
+          // free(head)
           return value;
         }
       }
@@ -90,11 +92,11 @@ T ConcurrentReuseQueue<T>::dequeue() {
 
 template <class T>
 void ConcurrentReuseQueue<T>::close() {
-  Node<T> curr = headref.getReference();
+  Node<T>* curr = headref->getReference();
   while (curr != NULL) {
-    Node<T> tmp = curr;
+    Node<T>* tmp = curr;
     tmp.free();
-    curr = curr.nextref.getReference();
+    curr = curr->nextref->getReference();
     delete tmp;
   }
 

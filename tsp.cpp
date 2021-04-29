@@ -9,7 +9,7 @@
 #include "graph.h"
 #include "path.h"
 
-
+#include "ConcurrentReuseQueue.h"
 
 static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long* counters, char verbose)
 {

@@ -1,10 +1,10 @@
 CFLAGS=-O3 -Wall -Werror -Wextra
-LDFLAGS=-lm
+LDFLAGS=-O3 -lm
 GPP=g++ -std=c++11 $(CFLAGS) -fgnu-tm
-CC=gcc $(CFLAGS)
+LD=g++ -std=c++11 $(LDFLAGS) -fgnu-tm
 
 tsp: tsp.o path.o graph.o AtomicStampedReference.o ConcurrentReuseQueue.o
-	$(GPP) $(LDFLAGS) -o $@ $^
+	$(LD) -o $@ $^ $(LDFLAGS)
 
 omp:
 	make tsp CFLAGS="-fopenmp -O3" LDFLAGS="-fopenmp -O3"
@@ -18,11 +18,11 @@ AtomicStampedReference.o: AtomicStampedReference.cpp AtomicStampedReference.h
 ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h AtomicStampedReference.h
 	$(GPP) -c $<
 
-graph.o: graph.c graph.h
-	$(GPP) -c $<
+graph.o: graph.cpp graph.h
+	$(GPP) -c -o $@ $<
 
-path.o: path.c path.h graph.h
-	$(GPP) -c $<
+path.o: path.cpp path.h graph.h
+	$(GPP) -c -o $@ $<
 
 tsp.o: tsp.cpp graph.h path.h
-	$(GPP) -c $<
+	$(GPP) -c -o $@ $<

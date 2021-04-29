@@ -75,10 +75,11 @@ void graph_read_tsplib(graph_t *g, char *name)
 	}
 	while (1) {
 		if (fgets(line, MAX_CHARS_LINE-1, f) == NULL) {
-			perror("Error reading line");
+			printf("Line read error");
 			exit(1);
 		}
-		if (!strncmp("DIMENSION", line, 10)) {
+
+		if (!strncmp("DIMENSION:", line, 10)) {
 			sscanf(line+11, "%d", &size);
 			if (size > MAX_NODES) {
 				perror("too many points in input");

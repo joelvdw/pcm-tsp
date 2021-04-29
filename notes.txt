@@ -1,0 +1,10 @@
+Fin de thread : nombre de chemins fixes (factoriel puis soustraction lors fin ou elagation) ou thread dormant vérifie que tout le monde dorment et dis aux autres de s'arreter
+
+Remplissage de la file avec les appels branch and bound
+Pool de n threads vidant la file
+Chaque thread fini un chemin et met les autres possibilités dans la file
+Copie de current
+Accès atomic aux cases de counter
+Modification atomic de shortest
+
+si moins de n villes (tester pour chaque n et documenter (voir si n arbitraire ou n proportionnel)), ne pas ajouter taches mais faire en recursif/sequentiel

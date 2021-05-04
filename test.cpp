@@ -3,19 +3,32 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <condition_variable>
 #include <vector>
+#include <mutex>
 #include "ConcurrentReuseQueue.h"
+#include "ThreadPool.h"
+#include "graph.h"
+#include "path.h"
 
 ConcurrentReuseQueue<int>* queue;
 pthread_mutex_t mutex;
+std::mutex mtx;
+std::condition_variable cv;
 int nbV = 500;
 int nbT = 50;
 int cpt = 0;
+int cptT = 0;
 
-void task1(int id) {
+void task1(int id, int nbT, graph_t* g, ConcurrentReuseQueue<path_t>* test) {
     pthread_mutex_lock(&mutex);
     std::cout << id << " starts..." << std::endl;
     pthread_mutex_unlock(&mutex);
+
+    if (g == NULL || test == NULL){
+
+    }
+        
 
     int* vals = new int[nbV];
     for (int i = 0; i < nbV; i++) {
@@ -37,26 +50,34 @@ void task1(int id) {
     std::cout << id << " ends" << std::endl;
     pthread_mutex_unlock(&mutex);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    pthread_mutex_lock(&mutex);
+    cptT += 1;
+
+    if(cptT == nbT){
+        pthread_mutex_unlock(&mutex);
+        cv.notify_all();
+    } else {
+        pthread_mutex_unlock(&mutex);
+        std::unique_lock<std::mutex> lck(mtx);
+        while (cptT != nbT) cv.wait(lck);
+    }
+
     delete vals;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     queue = new ConcurrentReuseQueue<int>();
     pthread_mutex_init(&mutex, NULL);
-
-    std::vector<std::thread> pool;
-    for (int i = 0; i < nbT; i++) {
-        pool.push_back(std::thread(task1, i));
-    }
+    ThreadPool* p = new ThreadPool(task1,nbT,NULL,NULL);
 
     std::cout << "Wait..." << std::endl;
 
-    for(std::thread &every_thread : pool) {
-        every_thread.join();
-    }
+    p->joinAll();
+
     std::cout << (((nbT*nbV)-1) * ((nbT*nbV)/2)) << " - " << cpt << std::endl;
-    pool.clear();
+    
+    p->free();
+
     pthread_mutex_destroy(&mutex);
 }

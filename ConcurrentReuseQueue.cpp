@@ -81,8 +81,8 @@ T* ConcurrentReuseQueue<T>::dequeue() {
       } else {
         T* value = next->value;
         if (headref->compareAndSet(head, next, headStamp[0], headStamp[0]+1)) {
-          head->free();
-          // free(head)
+          head->free(); // free(head)
+          
           return value;
         }
       }

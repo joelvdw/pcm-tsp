@@ -23,7 +23,7 @@ path_t* shortest_global;
 path_t end = { -1, -1, -1, -1, NULL };
 long* counters;
 
-static void task(int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>* queue) {
+static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>* queue) {
   path_t* current;
   while (true) {
     while ((current = queue->dequeue()) != NULL) {
@@ -56,8 +56,6 @@ static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long
     if (path_len(current) >= path_len(shortest)) {
       // current already >= shortest known so far, bound
       counters[path_size(current)] ++;
-      if (verbose)
-        path_print(current, (char*)"bound");
     } else {
       // continue branching
       for (i=1; i<size; i++) {
@@ -72,8 +70,6 @@ static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long
     path_add_node(current, 0, g, 0);
     counters[path_size(current)] ++;
     if (path_len(current) < path_len(shortest)) {
-      if (verbose)
-        path_print(current, (char*)"shorter");
       path_copy(shortest, current);
     }
     path_drop_tail(current, g);

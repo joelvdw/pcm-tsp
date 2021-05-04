@@ -17,7 +17,7 @@ class AtomicStampedReference {
 public:
   AtomicStampedReference(T* reference, long int stamp);
 
-  T* get(long int stamp[]);
+  T* get(long int* stamp);
   T* getReference();
   long getStamp();
   void set(T* value, long int stamp);

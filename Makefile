@@ -21,7 +21,7 @@ AtomicStampedReference.o: AtomicStampedReference.cpp AtomicStampedReference.h
 Node.o: Node.cpp Node.h
 	$(GPP) -c $<
 
-ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h Node.h AtomicStampedReference.h
+ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h Node.o AtomicStampedReference.o
 	$(GPP) -c $<
 
 graph.o: graph.cpp graph.h

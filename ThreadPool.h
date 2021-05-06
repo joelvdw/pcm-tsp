@@ -1,5 +1,10 @@
-#ifndef __THREAD_POOL_H_
-#define __THREAD_POOL_H_
+//
+//  ThreadPool.h
+//  Copyright (c) 2021 Favre & von der Weid. All rights reserved.
+//
+
+#ifndef _THREAD_POOL_H_
+#define _THREAD_POOL_H_
 
 #include <functional>
 #include <thread>

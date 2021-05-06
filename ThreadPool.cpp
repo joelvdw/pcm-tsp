@@ -6,13 +6,13 @@
 #ifndef _TP_CPP_
 #define _TP_CPP_
 
-#include "ThreadPool.h"
 #include <functional>
 #include <thread>
 #include <vector>
 #include "graph.h"
 #include "ConcurrentReuseQueue.h"
 #include "path.h"
+#include "ThreadPool.h"
 
 
 ThreadPool::ThreadPool(std::function<void(int id, int nbThread, graph_t* g, ConcurrentReuseQueue<path_t>* queue)> func, int nbThread, graph_t* g, ConcurrentReuseQueue<path_t>* queue){

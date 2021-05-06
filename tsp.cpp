@@ -43,9 +43,9 @@ static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, pa
     // not yet a leaf
     if (path_len(current) >= path_len(shortest)) {
       // current already >= shortest known so far, bound
-      mtx_cnts.lock();
-      counters[path_size(current)] ++;
-      mtx_cnts.unlock();
+      // mtx_cnts.lock();
+      // counters[path_size(current)] ++;
+      // mtx_cnts.unlock();
     } else {
       // continue branching
       path_t* next = NULL;
@@ -71,9 +71,9 @@ static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, pa
   } else {
     // this is a leaf
     path_add_node(current, 0, g, 0);
-    mtx_cnts.lock();
-    counters[path_size(current)] ++;
-    mtx_cnts.unlock();
+    // mtx_cnts.lock();
+    // counters[path_size(current)] ++;
+    // mtx_cnts.unlock();
 
     mtx_path.lock();
     if (path_len(current) < path_len(shortest)) {
@@ -113,21 +113,25 @@ static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>
       break;
     }
 
-    mtx.lock();
+    std::unique_lock<std::mutex> lck(mtx);
     cptT += 1;
+    std::cout << id << " cpt : " << cptT << "/" << nbthreads << std::endl;
 
-    if(cptT == nbthreads){
+    if (cptT == nbthreads) {
+      std::cout << "end " << id << std::endl;
+
       for (int i = 0; i < (nbthreads-1); ++i) {
         queue->enqueue(&end);
       }
-      mtx.unlock();
       cv.notify_all();
+      lck.unlock();
       break;
     } else {
-      std::unique_lock<std::mutex> lck(mtx);
+      std::cout << "sleep " << id << std::endl;
       cv.wait(lck);
+      std::cout << "wake up " << id << std::endl;
       cptT -= 1;
-      mtx.unlock();
+      lck.unlock();
     }
   }
 
@@ -170,6 +174,7 @@ int main(int argc, char *argv[])
   if (argc == 3) {
     nbThread = atoi(argv[2]);
   }
+
   graph_read_tsplib(&graph, fname);
   graph_print(&graph);
 

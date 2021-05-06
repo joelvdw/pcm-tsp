@@ -92,12 +92,16 @@ T* ConcurrentReuseQueue<T>::dequeue() {
 
 template <class T>
 void ConcurrentReuseQueue<T>::close() {
-  Node<T>* curr = headref->getReference();
-  while (curr != NULL) {
-    Node<T>* tmp = curr;
-    tmp.free();
-    curr = curr->nextref->getReference();
-    delete tmp;
+  if (headref->getReference() == tailref->getReference()) {
+    delete headref->getReference();
+  } else {
+    Node<T>* curr = headref->getReference();
+    while (curr != NULL) {
+      Node<T>* tmp = curr;
+      tmp->free();
+      curr = curr->nextref->getReference();
+      delete tmp;
+    }
   }
 
   // curr = freelist;

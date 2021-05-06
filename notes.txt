@@ -12,3 +12,4 @@ optiomisations :
 - tester atomic_compare_exchange_weak
 - use thread_local shortest
 - améliorer merging de shortest_global
+- remove counters

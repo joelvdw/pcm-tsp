@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <vector>
 #include <mutex>
+#include <random>
 #include "ConcurrentReuseQueue.h"
 #include "ThreadPool.h"
 #include "graph.h"
@@ -19,22 +20,22 @@ int nbV = 500;
 int nbT = 50;
 int cpt = 0;
 int cptT = 0;
+thread_local int locCpt = 0;
 
 void task1(int id, int nbT, graph_t* g, ConcurrentReuseQueue<path_t>* test) {
     pthread_mutex_lock(&mutex);
     std::cout << id << " starts..." << std::endl;
     pthread_mutex_unlock(&mutex);
 
-    if (g == NULL || test == NULL){
-
-    }
+    if (g == NULL || test == NULL) { }
         
-
+    locCpt = 0;
     int* vals = new int[nbV];
     for (int i = 0; i < nbV; i++) {
         vals[i] = i+(id*nbV);
         queue->enqueue(&vals[i]);
-        std::this_thread::sleep_for(std::chrono::milliseconds(3));
+        std::this_thread::sleep_for(std::chrono::milliseconds(std::rand()%5));
+        locCpt += 1;
     }
     for (int i = 0; i < nbV; i++) {
         int* v = queue->dequeue();
@@ -43,11 +44,11 @@ void task1(int id, int nbT, graph_t* g, ConcurrentReuseQueue<path_t>* test) {
         cpt += *v;
         pthread_mutex_unlock(&mutex);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        std::this_thread::sleep_for(std::chrono::milliseconds(std::rand()%5));
     }
 
     pthread_mutex_lock(&mutex);
-    std::cout << id << " ends" << std::endl;
+    std::cout << id << " ends : " << locCpt << std::endl;
     pthread_mutex_unlock(&mutex);
 
     pthread_mutex_lock(&mutex);

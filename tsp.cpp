@@ -22,7 +22,7 @@ using namespace std::chrono;
 #define COUNTERS false
 
 #define DEFAULT_THREADS 8
-#define LAST_AS_SEQ 5
+#define LAST_AS_SEQ 4
 
 path_t shortest_global;
 #if SHORTEST_LOCAL
@@ -58,15 +58,18 @@ static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, pa
       path_t* next = NULL;
       for (int i=1; i<size; i++) {
         if (path_add_node(current, i, g, 1)) {
-          if (next != NULL) {
-            queue->enqueue(next);
-            cv.notify_one();
-          }
+          if (path_size(current) < LAST_AS_SEQ) {
+            if (next != NULL) {
+              queue->enqueue(next);
+              cv.notify_one();
+            }
 
-          next = new path_t();
-          path_new(next, size+1);
-          path_copy(next, current);
-          
+            next = new path_t();
+            path_new(next, size+1);
+            path_copy(next, current);
+          } else {
+            branch_and_bound(queue, g, current, shortest);
+          }
           path_drop_tail(current, g);
         }
       }

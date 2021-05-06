@@ -19,6 +19,8 @@
 using namespace std::chrono;
 
 #define SHORTEST_LOCAL false
+#define COUNTERS false
+
 #define DEFAULT_THREADS 8
 #define LAST_AS_SEQ 5
 
@@ -28,24 +30,29 @@ thread_local path_t shortest_thread;
 #endif
 
 path_t end = { -1, -1, -1, -1, NULL };
-long* counters;
 int cptT = 0;
 std::mutex mtx;
 std::mutex mtx_path;
-std::mutex mtx_cnts;
 std::condition_variable cv;
 
+#if COUNTERS
+long* counters;
+std::mutex mtx_cnts;
+#endif
 
-static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, path_t *current, path_t *shortest, long* counters) {
+
+static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, path_t *current, path_t *shortest) {
   int size = graph_size(g);
 
   if (path_size(current) < size) {
     // not yet a leaf
     if (path_len(current) >= path_len(shortest)) {
       // current already >= shortest known so far, bound
-      // mtx_cnts.lock();
-      // counters[path_size(current)] ++;
-      // mtx_cnts.unlock();
+#if COUNTERS
+      mtx_cnts.lock();
+      counters[path_size(current)] ++;
+      mtx_cnts.unlock();
+#endif
     } else {
       // continue branching
       path_t* next = NULL;
@@ -64,16 +71,19 @@ static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, pa
         }
       }
       if (next != NULL) {
-        branch_and_bound(queue, g, next, shortest, counters);
+        branch_and_bound(queue, g, next, shortest);
         delete next;
       }
     }
   } else {
     // this is a leaf
     path_add_node(current, 0, g, 0);
-    // mtx_cnts.lock();
-    // counters[path_size(current)] ++;
-    // mtx_cnts.unlock();
+
+#if COUNTERS
+    mtx_cnts.lock();
+    counters[path_size(current)] ++;
+    mtx_cnts.unlock();
+#endif
 
     mtx_path.lock();
     if (path_len(current) < path_len(shortest)) {
@@ -101,9 +111,9 @@ static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>
       }
 
 #if SHORTEST_LOCAL
-      branch_and_bound(g, current, &shortest_thread, counters);
+      branch_and_bound(queue, g, current, &shortest_thread);
 #else
-      branch_and_bound(queue, g, current, &shortest_global, counters);
+      branch_and_bound(queue, g, current, &shortest_global);
 #endif
 
       delete current;
@@ -115,11 +125,8 @@ static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>
 
     std::unique_lock<std::mutex> lck(mtx);
     cptT += 1;
-    std::cout << id << " cpt : " << cptT << "/" << nbthreads << std::endl;
 
     if (cptT == nbthreads) {
-      std::cout << "end " << id << std::endl;
-
       for (int i = 0; i < (nbthreads-1); ++i) {
         queue->enqueue(&end);
       }
@@ -127,9 +134,7 @@ static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>
       lck.unlock();
       break;
     } else {
-      std::cout << "sleep " << id << std::endl;
       cv.wait(lck);
-      std::cout << "wake up " << id << std::endl;
       cptT -= 1;
       lck.unlock();
     }
@@ -147,7 +152,7 @@ static void check_argv(int argc, char *argv[])
   }
 }
 
-
+#if COUNTERS
 static long *alloc_counters(int size, char *pname)
 {
   long *counters = (long *) malloc((size_t) size * sizeof(long));
@@ -159,7 +164,7 @@ static long *alloc_counters(int size, char *pname)
     counters[i] = 0;
   return counters;
 }
-
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -179,7 +184,10 @@ int main(int argc, char *argv[])
   graph_print(&graph);
 
   size = graph_size(&graph);
+
+#if COUNTERS
   counters = alloc_counters(size+1, argv[0]);
+#endif
 
   path_new(&shortest_global, size+1);
   path_add_all_nodes(&shortest_global, &graph);
@@ -205,12 +213,16 @@ int main(int argc, char *argv[])
 
   printf("elapsed time: %.4fs\n", (float)ms/1000.0f);
   printf("total CPU time: %.4fs\n", (float)(tb.tms_utime + tb.tms_stime)/CLOCKS_PER_SEC);
+  
+#if COUNTERS
   printf("total paths bound/checks:");
   for (int i = 0; i <= size ; i++)
     printf(" %ld", counters[i]);
   printf("\n");
 
   free(counters);
+#endif
+
   pool->free();
   queue->close();
   delete pool;

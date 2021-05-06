@@ -21,10 +21,10 @@ AtomicStampedReference.o: AtomicStampedReference.cpp AtomicStampedReference.h
 Node.o: Node.cpp Node.h
 	$(GPP) -c $<
 
-ThreadPool.o: ThreadPool.cpp ThreadPool.h graph.o path.o ConcurrentReuseQueue.o
+ThreadPool.o: ThreadPool.cpp ThreadPool.h graph.h path.h ConcurrentReuseQueue.h
 	$(GPP) -c $<
 
-ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h Node.o AtomicStampedReference.o
+ConcurrentReuseQueue.o: ConcurrentReuseQueue.cpp ConcurrentReuseQueue.h Node.h AtomicStampedReference.h
 	$(GPP) -c $<
 
 graph.o: graph.cpp graph.h
@@ -33,7 +33,7 @@ graph.o: graph.cpp graph.h
 path.o: path.cpp path.h graph.h
 	$(GPP) -c -o $@ $<
 
-tsp.o: tsp.cpp graph.h path.h
+tsp.o: tsp.cpp graph.h path.h ThreadPool.h ConcurrentReuseQueue.h
 	$(GPP) -c -o $@ $<
 
 test.o: test.cpp ThreadPool.h path.h graph.h ConcurrentReuseQueue.h

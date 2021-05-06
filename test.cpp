@@ -51,14 +51,14 @@ void task1(int id, int nbT, graph_t* g, ConcurrentReuseQueue<path_t>* test) {
     std::cout << id << " ends : " << locCpt << std::endl;
     pthread_mutex_unlock(&mutex);
 
-    pthread_mutex_lock(&mutex);
+    mtx.lock();
     cptT += 1;
 
     if(cptT == nbT){
-        pthread_mutex_unlock(&mutex);
+        mtx.unlock();
         cv.notify_all();
     } else {
-        pthread_mutex_unlock(&mutex);
+        mtx.unlock();
         std::unique_lock<std::mutex> lck(mtx);
         while (cptT != nbT) cv.wait(lck);
     }

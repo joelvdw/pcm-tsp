@@ -6,6 +6,9 @@
 #include <sys/times.h>
 #include <time.h>
 #include <iostream>
+#include <condition_variable>
+#include <vector>
+#include <mutex>
 
 #include "graph.h"
 #include "path.h"
@@ -25,6 +28,9 @@ thread_local path_t shortest_thread;
 
 path_t end = { -1, -1, -1, -1, NULL };
 long* counters;
+int cptT = 0;
+std::mutex mtx;
+std::condition_variable cv;
 
 
 static void branch_and_bound(graph_t *g, path_t *current, path_t *shortest, long* counters)
@@ -81,8 +87,17 @@ static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>
       break;
     }
 
-    // wait cv
-    if (nbthreads) {}
+    mtx.lock();
+    cptT += 1;
+
+    if(cptT == nbthreads){
+        mtx.unlock();
+        cv.notify_all();
+    } else {
+        mtx.unlock();
+        std::unique_lock<std::mutex> lck(mtx);
+        while (cptT != nbthreads) cv.wait(lck);
+    }
   }
 
   // TODO merge shortest local to global

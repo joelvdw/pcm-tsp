@@ -7,7 +7,8 @@ Copie de current
 Accès atomic aux cases de counter
 Modification atomic de shortest
 
-si moins de n villes (tester pour chaque n et documenter (voir si n arbitraire ou n proportionnel)), ne pas ajouter taches mais faire en recursif/sequentiel
-
-
-tester atomic_compare_exchange_weak
+optiomisations :
+- si moins de n villes (tester pour chaque n et documenter (voir si n arbitraire ou n proportionnel)), ne pas ajouter taches mais faire en recursif/sequentiel
+- tester atomic_compare_exchange_weak
+- use thread_local shortest
+- améliorer merging de shortest_global

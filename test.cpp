@@ -12,6 +12,12 @@
 #include "graph.h"
 #include "path.h"
 
+typedef struct short_path {
+  char path[12];
+  int len;
+} short_path_t;
+short_path_t shortest_global;
+
 ConcurrentReuseQueue<int>* queue;
 pthread_mutex_t mutex;
 std::mutex mtx;
@@ -66,8 +72,24 @@ void task1(int id, int nbT, graph_t* g, ConcurrentReuseQueue<path_t>* test) {
     delete vals;
 }
 
+int mod(int v) {
+    return v & 0x1; 
+}
+
 int main()
 {
+    std::cout << mod(0) << std::endl;
+    std::cout << mod(1) << std::endl;
+    std::cout << mod(2) << std::endl;
+    std::cout << mod(12) << std::endl;
+    std::cout << mod(4) << std::endl;
+    std::cout << mod(7) << std::endl;
+    std::cout << mod(337) << std::endl;
+    std::cout << mod(75) << std::endl;
+    std::cout << mod(78) << std::endl;
+    std::cout << mod(91) << std::endl;
+    exit(0);
+
     queue = new ConcurrentReuseQueue<int>();
     pthread_mutex_init(&mutex, NULL);
     ThreadPool* p = new ThreadPool(task1,nbT,NULL,NULL);

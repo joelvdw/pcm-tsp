@@ -239,6 +239,7 @@ int main(int argc, char *argv[]) {
   if (argc == 3) {
     nbThread = atoi(argv[2]);
   }
+  std::cout << "Running with " << nbThread << " threads" << std::endl;
 
   graph_read_tsplib(&graph, fname);
   graph_print(&graph);

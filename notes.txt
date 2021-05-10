@@ -9,6 +9,6 @@ Modification atomic de shortest
 
 optiomisations :
 - si moins de n villes (tester pour chaque n et documenter), ne pas ajouter taches mais faire en recursif/sequentiel : DONE
-- tester atomic_compare_exchange_weak
-- use thread_local shortest
+- tester atomic_compare_exchange_weak : DONE
+- use thread_local shortest : DONE
 - améliorer merging de shortest_global : DONE

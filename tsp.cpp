@@ -18,7 +18,7 @@
 
 using namespace std::chrono;
 
-#define SHORTEST_LOCAL false
+#define SHORTEST_LOCAL true
 #define COUNTERS false
 
 #define DEFAULT_THREADS 8
@@ -29,10 +29,6 @@ typedef struct compact_path {
   int len;
 } compact_path_t;
 compact_path_t shortest_global;
-
-#if SHORTEST_LOCAL
-thread_local path_t shortest_thread;
-#endif
 
 path_t end = { -1, -1, -1, -1, NULL };
 int cptT = 0;
@@ -125,15 +121,21 @@ static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, pa
     mtx_cnts.unlock();
 #endif
 
+#if SHORTEST_LOCAL
+    if (path_len(current) < shortest->len) {
+      *shortest = compact_path(current);
+    }
+#else
     compact_path_t expected;
     __atomic_load(shortest, &expected, __ATOMIC_RELAXED);
     while (path_len(current) < expected.len) {
       compact_path_t tmp = compact_path(current);
-      if (__atomic_compare_exchange(&shortest_global, &expected, &tmp, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+      if (__atomic_compare_exchange(shortest, &expected, &tmp, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
         break;
       }
-      __atomic_load(&shortest_global, &expected, __ATOMIC_RELAXED);
+      __atomic_load(shortest, &expected, __ATOMIC_RELAXED);
     }
+#endif
 
     path_drop_tail(current, g);
   }
@@ -143,7 +145,11 @@ static void branch_and_bound(ConcurrentReuseQueue<path_t>* queue, graph_t *g, pa
 static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>* queue) {
   if (id) { /* Remove warning */ }
 
-  // TODO init shortest local
+  
+#if SHORTEST_LOCAL
+  thread_local compact_path_t shortest_thread;
+  __atomic_load(&shortest_global, &shortest_thread, __ATOMIC_RELAXED);
+#endif
 
   path_t* current;
   bool stop = false;
@@ -185,7 +191,16 @@ static void task(int id, int nbthreads, graph_t* g, ConcurrentReuseQueue<path_t>
     }
   }
 
-  // TODO merge shortest local to global
+#if SHORTEST_LOCAL
+  compact_path_t expected;
+  __atomic_load(&shortest_global, &expected, __ATOMIC_RELAXED);
+  while (shortest_thread.len < expected.len) {
+    if (__atomic_compare_exchange(&shortest_global, &expected, &shortest_thread, false, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) {
+      break;
+    }
+    __atomic_load(&shortest_global, &expected, __ATOMIC_RELAXED);
+  }
+#endif
 }
 
 

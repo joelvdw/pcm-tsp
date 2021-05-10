@@ -18,10 +18,10 @@
 
 using namespace std::chrono;
 
-#define SHORTEST_LOCAL true
+#define SHORTEST_LOCAL false
 #define COUNTERS false
 
-#define DEFAULT_THREADS 8
+#define DEFAULT_THREADS 256
 #define LAST_AS_SEQ 7
 
 typedef struct compact_path {

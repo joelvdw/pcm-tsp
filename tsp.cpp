@@ -22,7 +22,7 @@ using namespace std::chrono;
 #define COUNTERS false
 
 #define DEFAULT_THREADS 8
-#define LAST_AS_SEQ 4
+#define LAST_AS_SEQ 7
 
 typedef struct compact_path {
   unsigned char path[12];

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-NAME=no_opti
+NAME=perfs
 FILE=dj16.tsp
 THS="64 128 256"
 # s=`seq 10 10 256`
@@ -10,5 +10,5 @@ THS="64 128 256"
 for t in $THS
 do
   echo "${FILE%*.tsp}-$t"
-  ./tsp $FILE $t > "${FILE%*.tsp}-$t.txt"
+  ./tsp $FILE $t > "$NAME-${FILE%*.tsp}-$t.txt"
 done

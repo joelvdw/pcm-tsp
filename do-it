@@ -1,0 +1,16 @@
+#!/bin/sh
+
+echo "Compiling..."
+make
+
+echo ""
+echo "Running dj with 16 cities..."
+./tsp dj16.tsp 256
+
+echo ""
+echo "Running test1..."
+./tsp test1.tsp 256
+
+echo ""
+echo "Running test2..."
+./tsp test2.tsp 256

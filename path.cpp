@@ -26,6 +26,7 @@ void path_new(path_t *p, int size)
 		exit(1);
 	}
 	p->max_size = size;
+	p->bitmap = 0;
 	path_clear(p);
 }
 
@@ -34,6 +35,7 @@ void path_destroy(path_t *p)
 	free(p->nodes);
 	p->nodes = 0;
 	p->max_size = 0;
+	p->bitmap = 0;
 }
 
 
@@ -54,29 +56,27 @@ void path_print(path_t *p, char *str)
 
 void path_add_all_nodes(path_t *p, graph_t *g)
 {
-	int i;
-
-	for (i=0; i<graph_size(g); i++)
+	for (int i=0; i<graph_size(g); i++)
 		path_add_node(p, i, g, 0);
 }
 
 
 int path_add_node(path_t *p, int node, graph_t *g, int check)
 {
-	int i;
-	if (check)
-		for (i=0; i<p->size; i++) {
-			if (p->nodes[i] == node)
-				return 0;
+	if (check) {
+		if ((p->bitmap >> node) & 1) {
+			return 0;
 		}
-	else
-		i = p->size;
+	}
+	
+	int i = p->size;
 
 	if (i<p->max_size) {
 		p->nodes[i] = node;
 		if (i)
 			p->len += graph_distance(g, p->nodes[i-1], node);
 		p->size ++;
+		p->bitmap |= (1 << node);
 		return 1;
 	}
 	path_print(p, (char*)"error");
@@ -87,8 +87,10 @@ int path_add_node(path_t *p, int node, graph_t *g, int check)
 
 void path_drop_tail(path_t *p, graph_t *g)
 {
-	if (p->size)
+	if (p->size) {
 		p->size --;
+		p->bitmap &= ~(1 << p->nodes[p->size]);
+	}
 
 	if (p->size)
 		p->len -= graph_distance(g, p->nodes[p->size], p->nodes[p->size-1]);
@@ -101,12 +103,13 @@ void path_copy(path_t *dst, path_t *src)
 {
 	int i;
 
-	if (dst->max_size < src->size) {
-		perror("path won't fit");
-		exit(1);
-	}
+	// if (dst->max_size < src->size) {
+	// 	perror("path won't fit");
+	// 	exit(1);
+	// }
 	dst->size = src->size;
 	for (i=0; i<src->size; i++)
 		dst->nodes[i] = src->nodes[i];
 	dst->len = src->len;
+	dst->bitmap = src->bitmap;
 }

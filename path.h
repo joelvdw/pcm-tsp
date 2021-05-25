@@ -17,7 +17,7 @@ typedef struct {
 	int size;
 	int max_size;
 	int len;
-	int pad;
+	int bitmap;
 	int *nodes;
 } path_t;
 

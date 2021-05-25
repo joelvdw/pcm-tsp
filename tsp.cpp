@@ -30,7 +30,7 @@ typedef struct compact_path {
 } compact_path_t;
 compact_path_t shortest_global;
 
-path_t end = { -1, -1, -1, -1, NULL };
+path_t end = { -1, -1, -1, 0, NULL };
 int cptT = 0;
 std::mutex mtx;
 std::condition_variable cv;
@@ -291,6 +291,8 @@ int main(int argc, char *argv[]) {
   free(counters);
 #endif
 
+  path_destroy(&shortest);
+  graph_destroy(&graph);
   pool->free();
   queue->close();
   delete pool;

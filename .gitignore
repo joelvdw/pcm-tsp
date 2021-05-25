@@ -33,5 +33,6 @@
 
 tsp
 test
+*.pdf
 
 .vscode/
